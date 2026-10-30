@@ -1,0 +1,12 @@
+fastapi>=0.115
+uvicorn[standard]>=0.32
+python-multipart>=0.0.12      # subida de archivos
+pydantic-settings>=2.6
+psycopg[binary]>=3.2
+pgvector>=0.3
+pymupdf>=1.25                 # lectura de PDFs con número de página
+sentence-transformers>=3.3    # embeddings locales
+httpx>=0.28                   # cliente HTTP para Ollama
+anthropic>=0.40
+google-genai>=1.0
+pytest>=8.3

@@ -1,0 +1,16 @@
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: salas-db
+    environment:
+      POSTGRES_USER: salas
+      POSTGRES_PASSWORD: salas
+      POSTGRES_DB: salas
+    ports:
+      - "5433:5432"   # 5433 para no chocar con un Postgres local
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/app/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+
+volumes:
+  pgdata:

@@ -17,6 +17,7 @@ CREATE TABLE documentos (
     ruta       TEXT NOT NULL,           -- dónde quedó guardado en disco
     paginas    INTEGER,
     estado     TEXT NOT NULL DEFAULT 'procesando',  -- procesando | listo | error
+    error      TEXT,                    -- motivo, si estado = 'error'
     subido_en  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

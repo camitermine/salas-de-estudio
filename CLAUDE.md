@@ -13,8 +13,9 @@ Proyecto personal de Cami para aprender RAG y sumar al portfolio. Ver README.md 
 ## Comandos
 
 - Base: `docker compose up -d` (Postgres en el puerto **5433**). Recrear desde cero: `docker compose down -v`.
-- Backend (desde `backend/`): `.venv/Scripts/uvicorn app.main:app --reload`
-- Tests (desde `backend/`): `.venv/Scripts/pytest`
+- Backend (desde `backend/`): `.\.venv\Scripts\uvicorn app.main:app --reload`
+- Tests (desde `backend/`): `.\.venv\Scripts\pytest`
+- La terminal de Cami es PowerShell 5.1: al darle comandos, nada de `&&`; una instrucción por línea.
 
 ## Forma de trabajo
 

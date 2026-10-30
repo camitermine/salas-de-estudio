@@ -45,16 +45,22 @@ data/uploads/      PDFs subidos (no se versionan)
 
 ## Levantar en local
 
-```bash
+Comandos para PowerShell (Windows):
+
+```powershell
 docker compose up -d
 cd backend
 python -m venv .venv
-.venv/Scripts/pip install -r requirements.txt
-cp .env.example .env
-.venv/Scripts/uvicorn app.main:app --reload
+.\.venv\Scripts\pip install -r requirements.txt
+Copy-Item .env.example .env
+.\.venv\Scripts\uvicorn app.main:app --reload
 ```
 
 API en http://localhost:8000, documentación interactiva en http://localhost:8000/docs.
+
+Tests (desde `backend/`): `.\.venv\Scripts\pytest`
+
+La primera vez que se sube un PDF se descarga el modelo de embeddings (~500 MB).
 
 ## Etapas
 

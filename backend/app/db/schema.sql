@@ -7,6 +7,7 @@ CREATE TABLE salas (
     id          SERIAL PRIMARY KEY,
     nombre      TEXT NOT NULL,
     descripcion TEXT,
+    color       TEXT NOT NULL DEFAULT 'indigo',  -- color de etiqueta en la UI
     creada_en   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -16,6 +17,7 @@ CREATE TABLE documentos (
     nombre     TEXT NOT NULL,           -- nombre original del PDF
     ruta       TEXT NOT NULL,           -- dónde quedó guardado en disco
     paginas    INTEGER,
+    tamano_bytes INTEGER,
     estado     TEXT NOT NULL DEFAULT 'procesando',  -- procesando | listo | error
     error      TEXT,                    -- motivo, si estado = 'error'
     subido_en  TIMESTAMPTZ NOT NULL DEFAULT now()

@@ -25,5 +25,11 @@ class Settings(BaseSettings):
     gemini_modelo: str = "gemini-3.8-flash"
     gemini_razonamiento: str = "low"  # low | medium | high
 
+    @classmethod
+    def settings_customise_sources(cls, settings_cls, init_settings, env_settings, dotenv_settings, file_secret_settings):
+        # Por defecto las variables de entorno le ganan al .env. Acá se invierte:
+        # una ANTHROPIC_API_KEY vieja definida en Windows no debe pisar la del proyecto.
+        return init_settings, dotenv_settings, env_settings, file_secret_settings
+
 
 settings = Settings()

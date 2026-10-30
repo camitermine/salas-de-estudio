@@ -2,7 +2,7 @@ import shutil
 
 from fastapi import APIRouter, HTTPException, Query
 
-from app.api.esquemas import ResultadoBusqueda, Sala, SalaNueva
+from app.api.esquemas import ResultadoBusqueda, Sala, SalaCambios, SalaNueva
 from app.config import settings
 from app.db.conexion import conexion
 from app.rag.busqueda import buscar
@@ -19,8 +19,9 @@ _SELECT_SALA = """
 def crear_sala(sala: SalaNueva):
     with conexion() as conn:
         fila = conn.execute(
-            "INSERT INTO salas (nombre, descripcion) VALUES (%s, %s) RETURNING *, 0 AS documentos",
-            (sala.nombre, sala.descripcion),
+            """INSERT INTO salas (nombre, descripcion, color) VALUES (%s, %s, %s)
+               RETURNING *, 0 AS documentos""",
+            (sala.nombre, sala.descripcion, sala.color),
         ).fetchone()
     return fila
 
@@ -33,6 +34,18 @@ def listar_salas():
 
 @router.get("/{sala_id}", response_model=Sala)
 def obtener_sala(sala_id: int):
+    return _sala_o_404(sala_id)
+
+
+@router.patch("/{sala_id}", response_model=Sala)
+def editar_sala(sala_id: int, cambios: SalaCambios):
+    _sala_o_404(sala_id)
+    campos = cambios.model_dump(exclude_unset=True)
+    if campos:
+        # Los nombres de columna vienen del esquema (no del usuario), así que es seguro armarlos.
+        asignaciones = ", ".join(f"{c} = %({c})s" for c in campos)
+        with conexion() as conn:
+            conn.execute(f"UPDATE salas SET {asignaciones} WHERE id = %(id)s", {**campos, "id": sala_id})
     return _sala_o_404(sala_id)
 
 

@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StudyRooms RAG - Plataforma de Salas de Estudio</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons CDN -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81',
+            },
+            surface: {
+              50: '#f8fafc',
+              100: '#f1f5f9',
+              800: '#0f172a',
+              850: '#0b1120',
+              900: '#020617',
+              700: '#1e293b',
+              600: '#334155',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.4);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.25);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.45);
+    }
+    .custom-pulse {
+      animation: pulseGlow 2s infinite ease-in-out;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.8; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.03); }
+    }
+  </style>
+</head>
+<body class="h-full bg-slate-950 text-slate-100 font-sans antialiased flex flex-col overflow-hidden selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top App Navigation / Branding Header -->
+  <header class="h-14 border-b border-slate-800 bg-slate-900/90 backdrop-blur px-4 flex items-center justify-between z-30 shrink-0">
+    <div class="flex items-center space-x-3">
+      <!-- Logo Icon -->
+      <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+        <i class="ph-bold ph-brain text-white text-lg"></i>
+      </div>
+      <!-- Brand Name Switcher -->
+      <div class="flex items-center space-x-2">
+        <span id="activeBrandName" class="font-bold text-base tracking-tight text-white flex items-center gap-1.5">
+          DocRooms <span class="text-indigo-400 font-mono text-xs px-1.5 py-0.5 rounded bg-indigo-500/15 border border-indigo-500/30">RAG</span>
+        </span>
+        <div class="relative group">
+          <button title="Probar sugerencias de nombres" class="text-xs text-slate-400 hover:text-indigo-300 flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 transition">
+            <i class="ph ph-sparkle text-amber-400"></i>
+            <span>Sugerencias de Marca</span>
+            <i class="ph ph-caret-down text-[10px]"></i>
+          </button>
+          <!-- Dropdown names menu -->
+          <div class="absolute left-0 mt-1.5 w-60 bg-slate-850 border border-slate-700 rounded-xl shadow-2xl p-2 hidden group-hover:block z-50">
+            <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider px-2 py-1">Propuestas de Nombre</div>
+            <div class="space-y-0.5 text-xs text-slate-300" id="nameSuggestionsList">
+              <button onclick="setBrandName('DocRooms RAG')" class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-indigo-600/20 hover:text-indigo-300 flex items-center justify-between">
+                <span>DocRooms RAG</span> <span class="text-[10px] text-slate-500">Pragmático</span>
+              </button>
+              <button onclick="setBrandName('StudySphere AI')" class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-indigo-600/20 hover:text-indigo-300 flex items-center justify-between">
+                <span>StudySphere AI</span> <span class="text-[10px] text-slate-500">Global & Academia</span>
+              </button>
+              <button onclick="setBrandName('CogniRooms')" class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-indigo-600/20 hover:text-indigo-300 flex items-center justify-between">
+                <span>CogniRooms</span> <span class="text-[10px] text-slate-500">Cognitivo / RAG</span>
+              </button>
+              <button onclick="setBrandName('MenteExterna')" class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-indigo-600/20 hover:text-indigo-300 flex items-center justify-between">
+                <span>MenteExterna</span> <span class="text-[10px] text-slate-500">Segunda Memoria</span>
+              </button>
+              <button onclick="setBrandName('ExamenRAG')" class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-indigo-600/20 hover:text-indigo-300 flex items-center justify-between">
+                <span>ExamenRAG</span> <span class="text-[10px] text-slate-500">Enfoque Universitario</span>
+              </button>
+              <button onclick="setBrandName('BrainRooms')" class="w-full text-left px-2 py-1.5 rounded-lg hover:bg-indigo-600/20 hover:text-indigo-300 flex items-center justify-between">
+                <span>BrainRooms</span> <span class="text-[10px] text-slate-500">Intuitivo</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Header Badges & Actions -->
+    <div class="flex items-center space-x-3 text-xs">
+      <!-- RAG Pipeline Indicator -->
+      <div class="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        <span class="font-medium">ChromaDB / VectorStore: Conectado</span>
+      </div>
+
+      <!-- Quick Tips Modal Trigger -->
+      <button onclick="toggleModal('infoModal')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center gap-1.5 transition">
+        <i class="ph ph-info text-base text-indigo-400"></i>
+        <span class="hidden sm:inline">¿Cómo funciona el RAG aquí?</span>
+      </button>
+
+      <!-- Profile Avatar placeholder -->
+      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 border border-indigo-400/30 flex items-center justify-center font-bold text-xs text-white">
+        JS
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Body Wrapper -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- 1. SIDEBAR: Salas de Estudio -->
+    <aside class="w-72 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 select-none">
+      <!-- Sidebar Title & Add Room Button -->
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div>
+          <h2 class="text-sm font-semibold text-slate-200 uppercase tracking-wider flex items-center gap-2">
+            <i class="ph-bold ph-folders text-indigo-400"></i> Salas de Estudio
+          </h2>
+          <span class="text-[11px] text-slate-500">Contextos aislados</span>
+        </div>
+        <button onclick="openCreateRoomModal()" title="Crear nueva sala" class="w-7 h-7 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-md transition transform active:scale-95">
+          <i class="ph-bold ph-plus text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Search Rooms Filter -->
+      <div class="px-3 py-2 border-b border-slate-800/60">
+        <div class="relative">
+          <i class="ph ph-magnifying-glass absolute left-2.5 top-2.5 text-slate-500 text-xs"></i>
+          <input id="roomSearchInput" oninput="filterRooms()" type="text" placeholder="Filtrar tus salas..." class="w-full bg-slate-950 border border-slate-800 rounded-lg pl-7 pr-2.5 py-1.5 text-xs text-slate-300 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+        </div>
+      </div>
+
+      <!-- Room List Container -->
+      <div class="flex-1 overflow-y-auto p-2 space-y-1.5" id="roomsListContainer">
+        <!-- Rendered via JavaScript -->
+      </div>
+
+      <!-- Bottom System Status & Stats -->
+      <div class="p-3 border-t border-slate-800 bg-slate-900/60 space-y-2 text-xs">
+        <div class="flex items-center justify-between text-slate-400">
+          <span class="flex items-center gap-1.5"><i class="ph ph-database text-indigo-400"></i> Total Embeddings</span>
+          <span id="totalEmbeddingsCount" class="font-mono text-slate-200">1,420 chunks</span>
+        </div>
+        <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+          <div class="bg-indigo-500 h-1.5 rounded-full" style="width: 48%"></div>
+        </div>
+        <div class="flex items-center justify-between text-[11px] text-slate-500">
+          <span>Memoria Vectorial</span>
+          <span>48% de cuota local</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 2. MIDDLE COLUMN: Knowledge Base & Documentos de la Sala -->
+    <section class="w-80 md:w-96 bg-slate-900/50 border-r border-slate-800 flex flex-col shrink-0">
+      
+      <!-- Room Header Info in Middle Panel -->
+      <div class="p-4 border-b border-slate-800">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span id="currentRoomTagColor" class="w-3 h-3 rounded-full bg-indigo-500 ring-2 ring-indigo-500/20"></span>
+            <h3 id="currentRoomTitle" class="text-base font-semibold text-white truncate max-w-[190px]">Algoritmos & Estructuras</h3>
+          </div>
+          <div class="flex items-center space-x-1">
+            <button onclick="editCurrentRoom()" title="Editar sala" class="p-1.5 text-slate-400 hover:text-slate-200 rounded-md hover:bg-slate-800 transition">
+              <i class="ph ph-pencil-simple text-sm"></i>
+            </button>
+            <button onclick="deleteCurrentRoom()" title="Eliminar sala" class="p-1.5 text-rose-400 hover:text-rose-300 rounded-md hover:bg-rose-500/10 transition">
+              <i class="ph ph-trash text-sm"></i>
+            </button>
+          </div>
+        </div>
+        <p id="currentRoomDesc" class="text-xs text-slate-400 mt-1 line-clamp-2">Árboles binarios, Grafos (Dijkstra, BFS/DFS) y Complejidad Big O.</p>
+      </div>
+
+      <!-- PDF Dropzone & Upload Action -->
+      <div class="p-4 border-b border-slate-800/80">
+        <div id="dropZone" onclick="triggerFileInput()" class="border-2 border-dashed border-slate-700 hover:border-indigo-500/80 bg-slate-850/40 hover:bg-indigo-500/5 rounded-xl p-4 text-center cursor-pointer transition group">
+          <input type="file" id="fileInput" accept=".pdf,.txt,.md" class="hidden" multiple onchange="handleFileSelect(event)">
+          <div class="w-10 h-10 mx-auto rounded-full bg-slate-800 group-hover:bg-indigo-600/20 flex items-center justify-center text-slate-400 group-hover:text-indigo-400 transition mb-2">
+            <i class="ph-bold ph-cloud-arrow-up text-xl"></i>
+          </div>
+          <p class="text-xs font-medium text-slate-200 group-hover:text-indigo-300">Arrastra tus PDFs aquí o <span class="text-indigo-400 underline">examina</span></p>
+          <p class="text-[11px] text-slate-500 mt-1">Soporta PDF, TXT o Markdown (Max 25MB)</p>
+        </div>
+      </div>
+
+      <!-- Docs List Header & Active Count -->
+      <div class="px-4 py-2 bg-slate-850/60 border-b border-slate-800 flex items-center justify-between text-xs text-slate-400">
+        <span class="font-medium uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+          <i class="ph ph-files text-slate-400"></i> Documentos Indexados (<span id="docsCount" class="text-indigo-400 font-semibold">0</span>)
+        </span>
+        <button onclick="toggleRAGConfigModal()" class="text-slate-400 hover:text-indigo-300 text-[11px] flex items-center gap-1">
+          <i class="ph ph-sliders"></i> Ajustes RAG
+        </button>
+      </div>
+
+      <!-- PDF List -->
+      <div class="flex-1 overflow-y-auto p-3 space-y-2" id="docsListContainer">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Mini RAG Parameters Panel -->
+      <div class="p-3 border-t border-slate-800 bg-slate-900/80 text-[11px] text-slate-400">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-slate-300 font-medium flex items-center gap-1">
+            <i class="ph ph-gear text-indigo-400"></i> Hiperparámetros RAG:
+          </span>
+          <span class="text-indigo-400 font-mono">text-embedding-3-small</span>
+        </div>
+        <div class="grid grid-cols-3 gap-1.5 text-center text-[10px]">
+          <div class="bg-slate-800/80 p-1.5 rounded border border-slate-800">
+            <span class="text-slate-500 block">Chunk Size</span>
+            <span class="font-semibold text-slate-200" id="badgeChunkSize">512 tks</span>
+          </div>
+          <div class="bg-slate-800/80 p-1.5 rounded border border-slate-800">
+            <span class="text-slate-500 block">Overlap</span>
+            <span class="font-semibold text-slate-200" id="badgeOverlap">64 tks</span>
+          </div>
+          <div class="bg-slate-800/80 p-1.5 rounded border border-slate-800">
+            <span class="text-slate-500 block">Top-K Docs</span>
+            <span class="font-semibold text-slate-200" id="badgeTopK">4 chunks</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. MAIN WORKSPACE: Chat RAG & Respuestas con Fuentes -->
+    <main class="flex-1 bg-slate-950 flex flex-col relative overflow-hidden">
+      
+      <!-- Chat Header -->
+      <div class="h-14 border-b border-slate-800 px-6 flex items-center justify-between bg-slate-950/80 backdrop-blur z-10">
+        <div class="flex items-center space-x-3">
+          <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-500/20"></div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 id="chatRoomHeaderTitle" class="text-sm font-semibold text-white">Algoritmos & Estructuras</h2>
+              <span class="px-2 py-0.5 rounded-full bg-slate-800 text-[11px] text-slate-400 border border-slate-700" id="chatDocScope">Todos los docs de la sala</span>
+            </div>
+            <p class="text-[11px] text-slate-500">Generación aumentada por recuperación solo con PDFs de esta sala.</p>
+          </div>
+        </div>
+
+        <!-- Chat Header Actions -->
+        <div class="flex items-center space-x-2">
+          <button onclick="clearChatHistory()" title="Limpiar conversación" class="text-xs text-slate-400 hover:text-slate-200 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 flex items-center gap-1.5 transition">
+            <i class="ph ph-broom"></i>
+            <span class="hidden sm:inline">Limpiar chat</span>
+          </button>
+          <button onclick="exportChatNotes()" title="Exportar apuntes" class="text-xs text-slate-400 hover:text-slate-200 px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 flex items-center gap-1.5 transition">
+            <i class="ph ph-export"></i>
+            <span class="hidden sm:inline">Exportar resumen</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Messages Stream -->
+      <div class="flex-1 overflow-y-auto px-4 md:px-8 py-6 space-y-6" id="messagesContainer">
+        <!-- Rendered messages -->
+      </div>
+
+      <!-- Bottom Chat Interaction Form -->
+      <div class="p-4 md:px-8 border-t border-slate-800 bg-slate-900/90 backdrop-blur">
+        
+        <!-- Suggested Prompts Pill Buttons -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-2 text-xs scrollbar-none" id="quickPromptsContainer">
+          <span class="text-[11px] text-slate-500 shrink-0 flex items-center gap-1">
+            <i class="ph ph-lightbulb text-amber-400"></i> Sugerencias:
+          </span>
+          <button onclick="sendQuickPrompt('Resumir los conceptos clave de los documentos cargados')" class="px-2.5 py-1 rounded-full bg-slate-800/80 hover:bg-indigo-600/20 hover:border-indigo-500/50 hover:text-indigo-300 border border-slate-700 text-slate-300 shrink-0 transition">
+            📌 Resumir conceptos clave
+          </button>
+          <button onclick="sendQuickPrompt('Generar 3 preguntas tipo examen múltiple opción con respuestas justificadas')" class="px-2.5 py-1 rounded-full bg-slate-800/80 hover:bg-indigo-600/20 hover:border-indigo-500/50 hover:text-indigo-300 border border-slate-700 text-slate-300 shrink-0 transition">
+            📝 Test de 3 preguntas de examen
+          </button>
+          <button onclick="sendQuickPrompt('¿Cuáles son las diferencias y complejidades temporales principales explicadas en los PDFs?')" class="px-2.5 py-1 rounded-full bg-slate-800/80 hover:bg-indigo-600/20 hover:border-indigo-500/50 hover:text-indigo-300 border border-slate-700 text-slate-300 shrink-0 transition">
+            ⚡ Comparar complejidades
+          </button>
+        </div>
+
+        <!-- Input Box -->
+        <form onsubmit="handleChatSubmit(event)" class="relative flex items-end gap-2 mt-1">
+          <div class="relative flex-1 bg-slate-950 rounded-2xl border border-slate-700 focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition shadow-inner">
+            <textarea
+              id="chatTextarea"
+              rows="2"
+              placeholder="Haz una pregunta sobre los documentos de esta sala... (Ej: ¿Cómo funciona Dijkstra según el PDF?)"
+              class="w-full bg-transparent text-slate-100 text-sm p-3 pr-12 focus:outline-none resize-none placeholder-slate-500"
+              onkeydown="handleKeyDown(event)"
+            ></textarea>
+            
+            <div class="absolute right-3 bottom-2.5 flex items-center space-x-1.5 text-xs text-slate-400">
+              <span class="text-[10px] text-slate-500 hidden sm:inline">Enter para enviar</span>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            id="sendBtn"
+            class="h-12 w-12 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-600/20 transition transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <i class="ph-bold ph-paper-plane-right text-lg"></i>
+          </button>
+        </form>
+
+        <div class="flex items-center justify-between text-[11px] text-slate-500 mt-2 px-1">
+          <span class="flex items-center gap-1">
+            <i class="ph ph-shield-check text-emerald-400"></i> Aislamiento estricto: Las respuestas se basan exclusivamente en los PDFs de esta sala.
+          </span>
+          <span id="modelIndicator" class="font-mono text-slate-400">RAG Engine: Hybrid Search (BM25 + Dense)</span>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- MODALS -->
+
+  <!-- 1. Modal: Crear / Editar Sala -->
+  <div id="roomModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+      <h3 id="roomModalTitle" class="text-lg font-bold text-white mb-1">Crear Nueva Sala de Estudio</h3>
+      <p class="text-xs text-slate-400 mb-4">Cada sala mantiene su propia base de vectores y documentos aislados.</p>
+
+      <form onsubmit="handleSaveRoom(event)" class="space-y-4">
+        <input type="hidden" id="editingRoomId" value="">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Nombre de la Sala</label>
+          <input type="text" id="roomNameInput" required placeholder="Ej: Redes & Protocolos de Internet" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Descripción / Materia</label>
+          <textarea id="roomDescInput" rows="2" placeholder="Ej: Modelo OSI, TCP/IP, Socket programming y apuntes finales..." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-2">Color de Etiqueta</label>
+          <div class="flex items-center gap-3" id="colorPickerContainer">
+            <label class="cursor-pointer">
+              <input type="radio" name="roomColor" value="bg-indigo-500" class="peer hidden" checked>
+              <div class="w-7 h-7 rounded-full bg-indigo-500 peer-checked:ring-4 peer-checked:ring-indigo-400/40"></div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="roomColor" value="bg-emerald-500" class="peer hidden">
+              <div class="w-7 h-7 rounded-full bg-emerald-500 peer-checked:ring-4 peer-checked:ring-emerald-400/40"></div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="roomColor" value="bg-amber-500" class="peer hidden">
+              <div class="w-7 h-7 rounded-full bg-amber-500 peer-checked:ring-4 peer-checked:ring-amber-400/40"></div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="roomColor" value="bg-rose-500" class="peer hidden">
+              <div class="w-7 h-7 rounded-full bg-rose-500 peer-checked:ring-4 peer-checked:ring-rose-400/40"></div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="roomColor" value="bg-cyan-500" class="peer hidden">
+              <div class="w-7 h-7 rounded-full bg-cyan-500 peer-checked:ring-4 peer-checked:ring-cyan-400/40"></div>
+            </label>
+            <label class="cursor-pointer">
+              <input type="radio" name="roomColor" value="bg-purple-500" class="peer hidden">
+              <div class="w-7 h-7 rounded-full bg-purple-500 peer-checked:ring-4 peer-checked:ring-purple-400/40"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end space-x-2 pt-3 border-t border-slate-800">
+          <button type="button" onclick="toggleModal('roomModal')" class="px-4 py-2 rounded-lg text-xs font-medium text-slate-300 hover:bg-slate-800 transition">Cancelar</button>
+          <button type="submit" class="px-4 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg transition">Guardar Sala</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Modal: Ajustes RAG -->
+  <div id="ragConfigModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div>
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="ph ph-sliders-horizontal text-indigo-400"></i> Ajustes de Recuperación RAG
+          </h3>
+          <p class="text-xs text-slate-400">Controla cómo el modelo segmenta tus PDFs y recupera el contexto.</p>
+        </div>
+        <button onclick="toggleModal('ragConfigModal')" class="text-slate-400 hover:text-white">
+          <i class="ph ph-x text-lg"></i>
+        </button>
+      </div>
+
+      <div class="space-y-4 py-4 text-xs">
+        <div>
+          <div class="flex justify-between font-semibold text-slate-300 mb-1">
+            <span>Chunk Size (Tamaño de fragmento):</span>
+            <span id="rangeChunkVal" class="text-indigo-400 font-mono">512 tokens</span>
+          </div>
+          <input type="range" min="128" max="1024" step="64" value="512" oninput="document.getElementById('rangeChunkVal').innerText = this.value + ' tokens'" class="w-full accent-indigo-500">
+          <p class="text-[11px] text-slate-500 mt-0.5">Chunks más pequeños permiten citas precisas; más grandes ofrecen contexto amplio.</p>
+        </div>
+
+        <div>
+          <div class="flex justify-between font-semibold text-slate-300 mb-1">
+            <span>Chunk Overlap (Solapamiento):</span>
+            <span id="rangeOverlapVal" class="text-indigo-400 font-mono">64 tokens</span>
+          </div>
+          <input type="range" min="0" max="256" step="16" value="64" oninput="document.getElementById('rangeOverlapVal').innerText = this.value + ' tokens'" class="w-full accent-indigo-500">
+          <p class="text-[11px] text-slate-500 mt-0.5">Evita que ideas divididas entre dos fragmentos pierdan sentido semántico.</p>
+        </div>
+
+        <div>
+          <div class="flex justify-between font-semibold text-slate-300 mb-1">
+            <span>Top-K (Documentos recuperados a inyectar en prompt):</span>
+            <span id="rangeTopKVal" class="text-indigo-400 font-mono">4</span>
+          </div>
+          <input type="range" min="1" max="8" step="1" value="4" oninput="document.getElementById('rangeTopKVal').innerText = this.value" class="w-full accent-indigo-500">
+          <p class="text-[11px] text-slate-500 mt-0.5">Número de chunks relevantes que se enviarán al LLM para responder.</p>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">Estrategia de Búsqueda Vectorial</label>
+          <select class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-slate-200">
+            <option>Híbrida: Similitud Coseno (Embeddings) + BM25 Lexical</option>
+            <option>Solo Similitud Coseno (Dense Vector)</option>
+            <option>Multi-Query Expansion + Re-ranking</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex justify-end space-x-2 pt-3 border-t border-slate-800">
+        <button onclick="toggleModal('ragConfigModal')" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs">Aplicar Parámetros</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Modal: Info / Explicación RAG & Arquitectura -->
+  <div id="infoModal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative text-xs text-slate-300">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-base font-bold text-white flex items-center gap-2">
+          <i class="ph ph-lightbulb text-amber-400"></i> Arquitectura: ¿Cómo funciona este proyecto RAG?
+        </h3>
+        <button onclick="toggleModal('infoModal')" class="text-slate-400 hover:text-white">
+          <i class="ph ph-x text-lg"></i>
+        </button>
+      </div>
+      <div class="py-4 space-y-3">
+        <p><strong class="text-white">1. Salas Aisladas (Namespaces):</strong> En tu backend (Python/LangChain/LlamaIndex), cada sala corresponde a una colección o namespace en tu base vectorial (Chroma, Pinecone o Qdrant). Así evitas mezclar apuntes de distintas materias.</p>
+        <p><strong class="text-white">2. Ingesta & Chunking:</strong> Cuando subes un PDF, se extrae el texto, se divide en pedazos (chunks de 512 tokens con overlap de 64) y se generan embeddings vectoriales con un modelo como <code>text-embedding-3-small</code>.</p>
+        <p><strong class="text-white">3. Búsqueda y Cita de Fuentes:</strong> Al preguntar, tu query se vectoriza, se buscan los K fragmentos con mayor similitud coseno, y se inyectan en el prompt del LLM. El LLM responde citando la página y el archivo exacto.</p>
+        <div class="p-3 rounded-lg bg-indigo-950/40 border border-indigo-800/50 text-indigo-300">
+          💡 <strong>Tip para tu desarrollo:</strong> Puedes añadir en cada chunk metadatos como <code>{ "room_id": "...", "page": 12, "source": "apuntes.pdf" }</code> para filtrar y citar con total precisión en el front.
+        </div>
+      </div>
+      <div class="text-right">
+        <button onclick="toggleModal('infoModal')" class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-medium">Entendido</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs shadow-2xl flex items-center gap-2.5 transform translate-y-24 opacity-0 transition-all duration-300 z-50">
+    <i id="toastIcon" class="ph-bold ph-check-circle text-emerald-400 text-base"></i>
+    <span id="toastMsg">Notificación</span>
+  </div>
+
+  <!-- APPLICATION LOGIC (Vanilla JS) -->
+  <script>
+    // State management
+    const state = {
+      activeBrandName: 'DocRooms RAG',
+      activeRoomId: 'room-1',
+      rooms: [
+        {
+          id: 'room-1',
+          name: 'Algoritmos & Estructuras',
+          desc: 'Árboles binarios, Grafos (Dijkstra, BFS/DFS) y Complejidad Big O.',
+          color: 'bg-indigo-500',
+          docs: [
+            { id: 'doc-1', name: 'Grafos_y_Arboles_Cap4.pdf', size: '2.4 MB', chunks: 142, status: 'Vectorizado' },
+            { id: 'doc-2', name: 'Apuntes_Complejidad_BigO.pdf', size: '1.1 MB', chunks: 68, status: 'Vectorizado' },
+            { id: 'doc-3', name: 'Ejercicios_Parcial_2024.pdf', size: '890 KB', chunks: 45, status: 'Vectorizado' }
+          ],
+          chatHistory: [
+            {
+              sender: 'assistant',
+              text: '¡Hola! Bienvenido a la sala de **Algoritmos & Estructuras**. He indexado 3 documentos (255 fragmentos vectoriales). Puedes hacerme preguntas técnicas, pedirme código, resúmenes o simulacros de parcial.',
+              sources: []
+            },
+            {
+              sender: 'user',
+              text: '¿Cuál es la complejidad temporal del algoritmo de Dijkstra y qué estructura de datos requiere para ser eficiente?'
+            },
+            {
+              sender: 'assistant',
+              text: 'Según el documento **Grafos_y_Arboles_Cap4.pdf**, la complejidad de Dijkstra depende directamente de la implementación de la cola de prioridad:\n\n1. **Con Min-Heap binario:** La complejidad es **O((V + E) log V)**, donde V es el número de vértices y E el de aristas.\n2. **Con Matriz de adyacencia simple (sin heap):** Sería **O(V²)**, lo cual es ineficiente para grafos dispersos.\n3. **Con Heap de Fibonacci (caso teórico):** Puede optimizarse a **O(E + V log V)**.\n\nEl texto enfatiza que para el parcial práctico se debe asumir la implementación con Min-Heap.',
+              sources: [
+                {
+                  doc: 'Grafos_y_Arboles_Cap4.pdf',
+                  page: 24,
+                  score: '0.94',
+                  snippet: '...La selección del nodo mínimo toma O(log V) al extraer de una cola de prioridad basada en montículo binario (min-heap). Al actualizar las distancias de las aristas incidentes...'
+                },
+                {
+                  doc: 'Apuntes_Complejidad_BigO.pdf',
+                  page: 8,
+                  score: '0.88',
+                  snippet: '...Resumen de complejidades en grafos: Dijkstra estándar con priority_queue en C++ opera en O(E log V)...'
+                }
+              ]
+            }
+          ]
+        },
+        {
+          id: 'room-2',
+          name: 'Sistemas Operativos',
+          desc: 'Gestión de Memoria virtual, Paginación, Concurrencia y Procesos.',
+          color: 'bg-emerald-500',
+          docs: [
+            { id: 'doc-201', name: 'Silberschatz_Memoria_Virtual.pdf', size: '5.2 MB', chunks: 310, status: 'Vectorizado' },
+            { id: 'doc-202', name: 'Clase_Hilos_y_Semaforos.pdf', size: '1.4 MB', chunks: 92, status: 'Vectorizado' }
+          ],
+          chatHistory: [
+            {
+              sender: 'assistant',
+              text: 'Sala de **Sistemas Operativos** lista. Tienes cargados apuntes de memoria virtual y sincronización de hilos.',
+              sources: []
+            }
+          ]
+        },
+        {
+          id: 'room-3',
+          name: 'Bases de Datos & SQL',
+          desc: 'Normalización (1FN a BCNF), Índices B-Tree, Transacciones ACID.',
+          color: 'bg-amber-500',
+          docs: [
+            { id: 'doc-301', name: 'Normalizacion_Relacional.pdf', size: '3.1 MB', chunks: 180, status: 'Vectorizado' }
+          ],
+          chatHistory: [
+            {
+              sender: 'assistant',
+              text: 'Sala de **Bases de Datos** lista con el material de Normalización Relacional.',
+              sources: []
+            }
+          ]
+        },
+        {
+          id: 'room-4',
+          name: 'Machine Learning & NLP',
+          desc: 'Transformers, Atención, Embeddings y Fundamentos de LLMs.',
+          color: 'bg-purple-500',
+          docs: [
+            { id: 'doc-401', name: 'Attention_Is_All_You_Need.pdf', size: '2.8 MB', chunks: 115, status: 'Vectorizado' },
+            { id: 'doc-402', name: 'RAG_Architecture_Paper.pdf', size: '1.9 MB', chunks: 98, status: 'Vectorizado' }
+          ],
+          chatHistory: [
+            {
+              sender: 'assistant',
+              text: 'Sala de **Machine Learning** lista. Papers de Transformers y RAG indexados para consultas.',
+              sources: []
+            }
+          ]
+        }
+      ]
+    };
+
+    // Initialize application
+    window.addEventListener('DOMContentLoaded', () => {
+      renderRooms();
+      loadActiveRoom();
+    });
+
+    // Brand Name Changer
+    function setBrandName(name) {
+      state.activeBrandName = name;
+      document.getElementById('activeBrandName').innerHTML = `${name} <span class="text-indigo-400 font-mono text-xs px-1.5 py-0.5 rounded bg-indigo-500/15 border border-indigo-500/30">RAG</span>`;
+      showToast(`Nombre cambiado a: "${name}"`, 'ph-sparkle');
+    }
+
+    // Get Active Room Object
+    function getActiveRoom() {
+      return state.rooms.find(r => r.id === state.activeRoomId) || state.rooms[0];
+    }
+
+    // Render Room Sidebar Items
+    function renderRooms(filterText = '') {
+      const container = document.getElementById('roomsListContainer');
+      container.innerHTML = '';
+
+      const filtered = state.rooms.filter(r => 
+        r.name.toLowerCase().includes(filterText.toLowerCase()) || 
+        r.desc.toLowerCase().includes(filterText.toLowerCase())
+      );
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-slate-500 text-xs">
+            <i class="ph ph-folder-dashed text-2xl mb-1 text-slate-600 block"></i>
+            No se encontraron salas
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(room => {
+        const isActive = room.id === state.activeRoomId;
+        const totalDocs = room.docs.length;
+
+        const item = document.createElement('div');
+        item.className = `group relative rounded-xl p-2.5 transition cursor-pointer border ${
+          isActive 
+            ? 'bg-slate-800/90 border-indigo-500/50 shadow-sm' 
+            : 'bg-slate-900/40 hover:bg-slate-800/40 border-transparent hover:border-slate-800'
+        }`;
+        item.onclick = () => selectRoom(room.id);
+
+        item.innerHTML = `
+          <div class="flex items-start justify-between">
+            <div class="flex items-center space-x-2.5 min-w-0">
+              <span class="w-2.5 h-2.5 rounded-full shrink-0 ${room.color}"></span>
+              <span class="text-xs font-semibold ${isActive ? 'text-white' : 'text-slate-300 group-hover:text-white'} truncate">
+                ${escapeHTML(room.name)}
+              </span>
+            </div>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-800 text-slate-400 border border-slate-700 font-mono shrink-0">
+              ${totalDocs} docs
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-500 truncate mt-1 pl-5">
+            ${escapeHTML(room.desc || 'Sin descripción')}
+          </p>
+        `;
+
+        container.appendChild(item);
+      });
+
+      // Update total embeddings stat
+      const totalEmbeddings = state.rooms.reduce((acc, r) => {
+        return acc + r.docs.reduce((dAcc, d) => dAcc + (d.chunks || 0), 0);
+      }, 0);
+      document.getElementById('totalEmbeddingsCount').innerText = `${totalEmbeddings} chunks`;
+    }
+
+    // Select Active Room
+    function selectRoom(roomId) {
+      if (state.activeRoomId === roomId) return;
+      state.activeRoomId = roomId;
+      renderRooms(document.getElementById('roomSearchInput').value);
+      loadActiveRoom();
+      showToast(`Cambiaste a la sala: ${getActiveRoom().name}`);
+    }
+
+    // Load Active Room details into Workspace
+    function loadActiveRoom() {
+      const room = getActiveRoom();
+
+      // Update Middle Panel
+      document.getElementById('currentRoomTitle').innerText = room.name;
+      document.getElementById('currentRoomTitle').title = room.name;
+      document.getElementById('currentRoomDesc').innerText = room.desc;
+      document.getElementById('currentRoomTagColor').className = `w-3 h-3 rounded-full ${room.color} ring-2 ring-indigo-500/20`;
+
+      // Update Chat Header
+      document.getElementById('chatRoomHeaderTitle').innerText = room.name;
+      document.getElementById('chatDocScope').innerText = `${room.docs.length} documentos activos`;
+
+      // Render Docs
+      renderRoomDocs();
+
+      // Render Chat
+      renderChatMessages();
+    }
+
+    // Render Docs in Middle Column
+    function renderRoomDocs() {
+      const room = getActiveRoom();
+      const container = document.getElementById('docsListContainer');
+      document.getElementById('docsCount').innerText = room.docs.length;
+      container.innerHTML = '';
+
+      if (room.docs.length === 0) {
+        container.innerHTML = `
+          <div class="h-48 border border-dashed border-slate-800 rounded-xl flex flex-col items-center justify-center text-center p-4 text-slate-500 text-xs">
+            <i class="ph ph-file-plus text-3xl mb-2 text-slate-600"></i>
+            <p class="font-medium text-slate-400">Esta sala no tiene documentos</p>
+            <p class="text-[11px] text-slate-600 mt-1">Sube PDFs para habilitar las preguntas RAG.</p>
+          </div>
+        `;
+        return;
+      }
+
+      room.docs.forEach(doc => {
+        const docCard = document.createElement('div');
+        docCard.className = 'p-2.5 rounded-xl bg-slate-850/80 hover:bg-slate-800 border border-slate-800 transition flex items-center justify-between group';
+        
+        let statusBadge = '';
+        if (doc.status === 'Vectorizado') {
+          statusBadge = `<span class="inline-flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20"><i class="ph-bold ph-check text-[9px]"></i> Vectorizado</span>`;
+        } else if (doc.status === 'Chunking...') {
+          statusBadge = `<span class="inline-flex items-center gap-1 text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20"><i class="ph ph-spinner animate-spin text-[9px]"></i> Chunking...</span>`;
+        } else {
+          statusBadge = `<span class="text-[10px] text-rose-400">${doc.status}</span>`;
+        }
+
+        docCard.innerHTML = `
+          <div class="flex items-center space-x-2.5 min-w-0 pr-2">
+            <div class="w-8 h-8 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center shrink-0">
+              <i class="ph-bold ph-file-pdf text-base"></i>
+            </div>
+            <div class="min-w-0">
+              <p class="text-xs font-medium text-slate-200 truncate group-hover:text-indigo-300" title="${escapeHTML(doc.name)}">
+                ${escapeHTML(doc.name)}
+              </p>
+              <div class="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
+                <span>${doc.size}</span>
+                <span>•</span>
+                <span class="font-mono">${doc.chunks} chunks</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center space-x-1 shrink-0">
+            ${statusBadge}
+            <button onclick="removeDoc('${doc.id}')" title="Eliminar documento de la sala" class="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-rose-400 rounded transition">
+              <i class="ph ph-trash text-sm"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(docCard);
+      });
+    }
+
+    // Render Chat Messages
+    function renderChatMessages() {
+      const room = getActiveRoom();
+      const container = document.getElementById('messagesContainer');
+      container.innerHTML = '';
+
+      room.chatHistory.forEach((msg, idx) => {
+        const isUser = msg.sender === 'user';
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `flex gap-3 max-w-3xl ${isUser ? 'ml-auto flex-row-reverse' : 'mr-auto'}`;
+
+        // Avatar
+        const avatar = isUser
+          ? `<div class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-xs font-semibold shrink-0">Tú</div>`
+          : `<div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-violet-600 to-indigo-500 text-white flex items-center justify-center text-sm shadow-md shrink-0"><i class="ph-bold ph-sparkle"></i></div>`;
+
+        // Format message body (Markdown basic formatting simulation)
+        let bodyHTML = escapeHTML(msg.text)
+          .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>')
+          .replace(/\n\n/g, '<br><br>')
+          .replace(/\n/g, '<br>');
+
+        // Sources citations UI
+        let sourcesHTML = '';
+        if (msg.sources && msg.sources.length > 0) {
+          const sourcesItems = msg.sources.map((s, sIdx) => `
+            <div class="border border-slate-700/70 bg-slate-900/80 rounded-lg p-2 text-[11px] text-slate-300 space-y-1">
+              <div class="flex items-center justify-between text-indigo-300 font-medium">
+                <span class="flex items-center gap-1 truncate"><i class="ph-bold ph-file-pdf text-rose-400"></i> ${escapeHTML(s.doc)} (Pág. ${s.page})</span>
+                <span class="text-[10px] px-1.5 py-0.2 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-mono">Similitud: ${s.score}</span>
+              </div>
+              <p class="text-slate-400 italic text-[11px] bg-slate-950/60 p-1.5 rounded border border-slate-800">
+                "${escapeHTML(s.snippet)}"
+              </p>
+            </div>
+          `).join('');
+
+          sourcesHTML = `
+            <div class="mt-3 pt-2 border-t border-slate-700/60">
+              <details class="group">
+                <summary class="cursor-pointer text-[11px] font-semibold text-indigo-300 flex items-center gap-1 select-none hover:text-indigo-200">
+                  <i class="ph-bold ph-quotes group-open:rotate-90 transition-transform"></i>
+                  <span>${msg.sources.length} Fragmentos RAG Recuperados (Knowledge Context)</span>
+                </summary>
+                <div class="mt-2 space-y-2">
+                  ${sourcesItems}
+                </div>
+              </details>
+            </div>
+          `;
+        }
+
+        msgDiv.innerHTML = `
+          ${avatar}
+          <div class="space-y-1 text-sm ${isUser ? 'text-right' : 'text-left'}">
+            <div class="inline-block p-4 rounded-2xl ${
+              isUser
+                ? 'bg-indigo-600 text-white rounded-tr-none'
+                : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-tl-none shadow-md'
+            }">
+              <div class="leading-relaxed text-xs md:text-sm">
+                ${bodyHTML}
+              </div>
+              ${sourcesHTML}
+            </div>
+            <div class="text-[10px] text-slate-500 px-1">
+              ${isUser ? 'Tú • Ahora' : 'RAG Assistant • Citando base de la sala'}
+            </div>
+          </div>
+        `;
+
+        container.appendChild(msgDiv);
+      });
+
+      // Scroll to bottom
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // Handle Chat Submit
+    function handleChatSubmit(e) {
+      if (e) e.preventDefault();
+      const textarea = document.getElementById('chatTextarea');
+      const question = textarea.value.trim();
+      if (!question) return;
+
+      const room = getActiveRoom();
+
+      // Check if room has docs
+      if (room.docs.length === 0) {
+        showToast('Debes subir al menos un PDF a esta sala para responder con RAG.', 'ph-warning');
+        return;
+      }
+
+      // Add user message
+      room.chatHistory.push({
+        sender: 'user',
+        text: question
+      });
+      textarea.value = '';
+      renderChatMessages();
+
+      // Show typing indicator
+      showTypingIndicator();
+
+      // Simulate RAG Retrieval & LLM Generation latency
+      setTimeout(() => {
+        removeTypingIndicator();
+        generateSimulatedResponse(question, room);
+      }, 1300);
+    }
+
+    function handleKeyDown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleChatSubmit();
+      }
+    }
+
+    function sendQuickPrompt(promptText) {
+      document.getElementById('chatTextarea').value = promptText;
+      handleChatSubmit();
+    }
+
+    function showTypingIndicator() {
+      const container = document.getElementById('messagesContainer');
+      const typingDiv = document.createElement('div');
+      typingDiv.id = 'typingIndicator';
+      typingDiv.className = 'flex gap-3 max-w-md mr-auto';
+      typingDiv.innerHTML = `
+        <div class="w-7 h-7 rounded-lg bg-indigo-600/30 border border-indigo-500/30 text-indigo-400 flex items-center justify-center text-sm shrink-0">
+          <i class="ph-bold ph-sparkle"></i>
+        </div>
+        <div class="p-3 rounded-2xl bg-slate-900 border border-slate-800 text-slate-400 rounded-tl-none text-xs flex items-center gap-2">
+          <i class="ph ph-magnifying-glass text-indigo-400 animate-bounce"></i>
+          <span>Buscando chunks relevantes en <strong>${getActiveRoom().name}</strong>...</span>
+        </div>
+      `;
+      container.appendChild(typingDiv);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function removeTypingIndicator() {
+      const ind = document.getElementById('typingIndicator');
+      if (ind) ind.remove();
+    }
+
+    // Dynamic response generation based on the active room & documents
+    function generateSimulatedResponse(question, room) {
+      const firstDoc = room.docs[0] ? room.docs[0].name : 'Documento_Principal.pdf';
+      const secondDoc = room.docs[1] ? room.docs[1].name : firstDoc;
+
+      let answer = "";
+      let sources = [];
+
+      if (question.toLowerCase().includes('resum')) {
+        answer = `He analizado los documentos indexados en **${room.name}**. Aquí tienes el resumen sintetizado:\n\n` +
+                 `• **Núcleo temático:** El contenido se enfoca en los principios fundamentales de ${room.name}, estructurando la teoría y casos de aplicación.\n` +
+                 `• **Puntos críticos:** Se priorizan las comparativas de rendimiento, definiciones formales y algoritmos de resolución paso a paso.\n` +
+                 `• **Conclusión de los apuntes:** Se sugiere dominar los ejercicios prácticos de las últimas páginas previo a la evaluación.`;
+        sources = [
+          { doc: firstDoc, page: 3, score: '0.92', snippet: '...Introducción formal y alcance de los temas evaluados en la unidad...' },
+          { doc: secondDoc, page: 15, score: '0.86', snippet: '...Resumen metodológico y síntesis comparativa para estudio rápido...' }
+        ];
+      } else if (question.toLowerCase().includes('pregunta') || question.toLowerCase().includes('examen')) {
+        answer = `Basado estrictamente en los documentos de esta sala, he generado estas **3 preguntas tipo examen**:\n\n` +
+                 `1. **¿Cuál es la hipótesis fundamental planteada en la sección 2 de ${firstDoc}?**\n   *Respuesta esperada:* El desacoplamiento y la optimización asintótica.\n\n` +
+                 `2. **¿Qué compensación (trade-off) se describe al aumentar el factor de carga?**\n   *Respuesta esperada:* Menor consumo de memoria frente a mayor latencia en accesos.\n\n` +
+                 `3. **Identifique el caso de error común señalado en los apuntes prácticos.**\n   *Respuesta esperada:* No verificar la condición de parada antes de la llamada recursiva.`;
+        sources = [
+          { doc: firstDoc, page: 9, score: '0.95', snippet: '...Criterios de evaluación y preguntas modelo sugeridas por la cátedra...' }
+        ];
+      } else {
+        answer = `De acuerdo con la información recuperada de **${firstDoc}** para la sala **${room.name}**:\n\n` +
+                 `En relación a tu consulta *" ${question} "*:\n\n` +
+                 `El texto detalla que los componentes operan bajo un modelo determinista donde las restricciones de tiempo y memoria son prioritarias. Se resalta especialmente que no se debe mezclar este contexto con otros dominios de la materia.\n\n` +
+                 `¿Deseas que profundice en algún fragmento en particular o te genere una ficha nemotécnica de repaso?`;
+        sources = [
+          { doc: firstDoc, page: 12, score: '0.89', snippet: `...Contexto recuperado directamente de los vectores calculados para "${firstDoc}"...` },
+          { doc: secondDoc, page: 4, score: '0.81', snippet: '...Complemento teórico y definiciones asociadas al módulo...' }
+        ];
+      }
+
+      room.chatHistory.push({
+        sender: 'assistant',
+        text: answer,
+        sources: sources
+      });
+
+      renderChatMessages();
+    }
+
+    // Clear Chat
+    function clearChatHistory() {
+      const room = getActiveRoom();
+      room.chatHistory = [
+        {
+          sender: 'assistant',
+          text: `Conversación reiniciada para la sala **${room.name}**. Haz tu consulta sobre los documentos indexados.`,
+          sources: []
+        }
+      ];
+      renderChatMessages();
+      showToast('Historial de chat reiniciado');
+    }
+
+    // Export Chat Notes Mock
+    function exportChatNotes() {
+      const room = getActiveRoom();
+      const text = room.chatHistory.map(m => `[${m.sender.toUpperCase()}]: ${m.text}`).join('\n\n---\n\n');
+      
+      // Use fallback clipboard
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+
+      showToast('Resumen y preguntas copiados al portapapeles');
+    }
+
+    // Drag and Drop & Upload Files Simulation
+    function triggerFileInput() {
+      document.getElementById('fileInput').click();
+    }
+
+    function handleFileSelect(e) {
+      const files = Array.from(e.target.files);
+      if (files.length === 0) return;
+      processIncomingFiles(files);
+      e.target.value = '';
+    }
+
+    // Drag events
+    const dropZone = document.getElementById('dropZone');
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-indigo-500', 'bg-indigo-500/10');
+      }, false);
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-indigo-500', 'bg-indigo-500/10');
+      }, false);
+    });
+    dropZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = Array.from(dt.files);
+      if (files.length > 0) processIncomingFiles(files);
+    });
+
+    function processIncomingFiles(files) {
+      const room = getActiveRoom();
+      files.forEach((file, i) => {
+        const tempId = 'doc-' + Date.now() + '-' + i;
+        const newDoc = {
+          id: tempId,
+          name: file.name,
+          size: (file.size / (1024 * 1024)).toFixed(1) + ' MB',
+          chunks: Math.floor(Math.random() * 80) + 30,
+          status: 'Chunking...'
+        };
+        room.docs.push(newDoc);
+        renderRoomDocs();
+
+        // Simulate vectorization completion
+        setTimeout(() => {
+          newDoc.status = 'Vectorizado';
+          renderRoomDocs();
+          renderRooms();
+          showToast(`"${file.name}" vectorizado e indexado en ${room.name}!`);
+        }, 1800 + (i * 600));
+      });
+
+      showToast(`Procesando ${files.length} documento(s) con RAG...`, 'ph-cpu');
+    }
+
+    function removeDoc(docId) {
+      const room = getActiveRoom();
+      room.docs = room.docs.filter(d => d.id !== docId);
+      renderRoomDocs();
+      renderRooms();
+      showToast('Documento eliminado del espacio vectorial');
+    }
+
+    // Room Creation & Editing
+    function openCreateRoomModal() {
+      document.getElementById('roomModalTitle').innerText = 'Crear Nueva Sala de Estudio';
+      document.getElementById('editingRoomId').value = '';
+      document.getElementById('roomNameInput').value = '';
+      document.getElementById('roomDescInput').value = '';
+      toggleModal('roomModal');
+    }
+
+    function editCurrentRoom() {
+      const room = getActiveRoom();
+      document.getElementById('roomModalTitle').innerText = 'Editar Sala de Estudio';
+      document.getElementById('editingRoomId').value = room.id;
+      document.getElementById('roomNameInput').value = room.name;
+      document.getElementById('roomDescInput').value = room.desc;
+      toggleModal('roomModal');
+    }
+
+    function handleSaveRoom(e) {
+      e.preventDefault();
+      const id = document.getElementById('editingRoomId').value;
+      const name = document.getElementById('roomNameInput').value.trim();
+      const desc = document.getElementById('roomDescInput').value.trim();
+      const colorRadio = document.querySelector('input[name="roomColor"]:checked');
+      const color = colorRadio ? colorRadio.value : 'bg-indigo-500';
+
+      if (!name) return;
+
+      if (id) {
+        // Edit existing
+        const room = state.rooms.find(r => r.id === id);
+        if (room) {
+          room.name = name;
+          room.desc = desc;
+          room.color = color;
+        }
+        showToast('Sala actualizada exitosamente');
+      } else {
+        // Create new
+        const newRoom = {
+          id: 'room-' + Date.now(),
+          name: name,
+          desc: desc,
+          color: color,
+          docs: [],
+          chatHistory: [
+            {
+              sender: 'assistant',
+              text: `¡Bienvenido a la nueva sala de **${name}**! Arrastra aquí tus PDFs para comenzar a hacer preguntas contextualizadas con RAG.`,
+              sources: []
+            }
+          ]
+        };
+        state.rooms.unshift(newRoom);
+        state.activeRoomId = newRoom.id;
+        showToast(`Sala "${name}" creada`);
+      }
+
+      toggleModal('roomModal');
+      renderRooms();
+      loadActiveRoom();
+    }
+
+    function deleteCurrentRoom() {
+      if (state.rooms.length <= 1) {
+        showToast('Debes mantener al menos una sala de estudio activa.', 'ph-warning');
+        return;
+      }
+      const room = getActiveRoom();
+      const confirmDelete = window.confirm ? true : true; // Keep inline without alerts
+      state.rooms = state.rooms.filter(r => r.id !== room.id);
+      state.activeRoomId = state.rooms[0].id;
+      renderRooms();
+      loadActiveRoom();
+      showToast(`Sala "${room.name}" eliminada`);
+    }
+
+    function filterRooms() {
+      const query = document.getElementById('roomSearchInput').value;
+      renderRooms(query);
+    }
+
+    // Modal Helpers
+    function toggleModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal.classList.contains('hidden')) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      } else {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    function toggleRAGConfigModal() {
+      toggleModal('ragConfigModal');
+    }
+
+    // Toast feedback helper
+    let toastTimeout;
+    function showToast(msg, iconClass = 'ph-check-circle') {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      const toastIcon = document.getElementById('toastIcon');
+
+      toastMsg.innerText = msg;
+      toastIcon.className = `ph-bold ${iconClass} text-indigo-400 text-base`;
+
+      toast.classList.remove('translate-y-24', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 3000);
+    }
+
+    // Safe HTML Escape
+    function escapeHTML(str) {
+      if (!str) return '';
+      return str.replace(/[&<>'"]/g, 
+        tag => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;'
+        }[tag] || tag)
+      );
+    }
+  </script>
+</body>
+</html>

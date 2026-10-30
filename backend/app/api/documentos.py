@@ -2,6 +2,7 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 
 from app.api.esquemas import Documento
 from app.config import settings
@@ -43,9 +44,9 @@ async def subir_documento(sala_id: int, archivo: UploadFile, tareas: BackgroundT
 
     with conexion() as conn:
         doc = conn.execute(
-            """INSERT INTO documentos (sala_id, nombre, ruta) VALUES (%s, %s, %s)
+            """INSERT INTO documentos (sala_id, nombre, ruta, tamano_bytes) VALUES (%s, %s, %s, %s)
                RETURNING *, 0 AS fragmentos""",
-            (sala_id, archivo.filename or "documento.pdf", str(ruta)),
+            (sala_id, archivo.filename or "documento.pdf", str(ruta), len(contenido)),
         ).fetchone()
 
     tareas.add_task(ingerir_documento, doc["id"])
@@ -64,6 +65,18 @@ def listar_documentos(sala_id: int):
 @router.get("/documentos/{documento_id}", response_model=Documento)
 def obtener_documento(documento_id: int):
     return _documento_o_404(documento_id)
+
+
+@router.get("/documentos/{documento_id}/archivo")
+def descargar_documento(documento_id: int):
+    """El PDF original, para abrirlo en el navegador en la página citada (#page=N)."""
+    doc = _documento_o_404(documento_id)
+    return FileResponse(
+        doc["ruta"],
+        media_type="application/pdf",
+        filename=doc["nombre"],
+        content_disposition_type="inline",  # que el navegador lo muestre en vez de descargarlo
+    )
 
 
 @router.delete("/documentos/{documento_id}", status_code=204)

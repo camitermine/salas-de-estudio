@@ -1,0 +1,71 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --color-fondo: #020617;
+  --color-panel: #0f172a;
+  --color-panel-hundido: #0b1120;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  @apply bg-fondo text-slate-100 font-sans antialiased;
+  color-scheme: dark;
+}
+
+::selection {
+  @apply bg-indigo-500 text-white;
+}
+
+:focus-visible {
+  @apply outline-2 outline-offset-2 outline-indigo-400;
+}
+
+/* Scrollbars finos, como en el mockup */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(148 163 184 / 0.25) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Texto de las respuestas del asistente (Markdown) */
+.respuesta {
+  @apply text-sm leading-relaxed text-slate-200;
+}
+.respuesta p + p,
+.respuesta p + ul,
+.respuesta p + ol,
+.respuesta ul + p,
+.respuesta ol + p {
+  @apply mt-3;
+}
+.respuesta ul {
+  @apply list-disc pl-5 space-y-1;
+}
+.respuesta ol {
+  @apply list-decimal pl-5 space-y-1;
+}
+.respuesta strong {
+  @apply font-semibold text-white;
+}
+.respuesta code {
+  @apply rounded bg-slate-800 px-1 py-0.5 text-[0.85em] text-indigo-200;
+}
+.respuesta h1,
+.respuesta h2,
+.respuesta h3 {
+  @apply mt-4 mb-2 font-semibold text-white first:mt-0;
+}

@@ -43,6 +43,13 @@ def extraer_fuentes(respuesta: str, fragmentos: list[Resultado]) -> list[dict]:
         vistos.add(numero)
         f = fragmentos[numero - 1]
         fuentes.append(
-            {"n": numero, "documento_id": f.documento_id, "documento": f.documento, "pagina": f.pagina}
+            {
+                "n": numero,
+                "documento_id": f.documento_id,
+                "documento": f.documento,
+                "pagina": f.pagina,
+                "texto": f.texto,
+                "similitud": f.similitud,
+            }
         )
     return fuentes

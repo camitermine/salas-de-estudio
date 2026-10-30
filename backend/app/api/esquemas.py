@@ -27,6 +27,32 @@ class Documento(BaseModel):
     subido_en: datetime
 
 
+class PreguntaChat(BaseModel):
+    pregunta: str = Field(min_length=1, max_length=2000)
+
+
+class Fuente(BaseModel):
+    n: int  # número de cita usado en la respuesta: [n]
+    documento_id: int
+    documento: str
+    pagina: int
+
+
+class RespuestaChat(BaseModel):
+    respuesta: str
+    fuentes: list[Fuente]
+    modelo: str  # qué modelo respondió
+
+
+class MensajeChat(BaseModel):
+    id: int
+    rol: str
+    contenido: str
+    fuentes: list[Fuente] | None
+    modelo: str | None
+    creado_en: datetime
+
+
 class ResultadoBusqueda(BaseModel):
     fragmento_id: int
     documento_id: int

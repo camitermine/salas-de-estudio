@@ -3,8 +3,8 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import documentos, salas
-from app.config import settings
+from app.api import chat, documentos, salas
+from app.llm import obtener_llm
 
 logging.basicConfig(level=logging.INFO)
 
@@ -19,8 +19,9 @@ app.add_middleware(
 
 app.include_router(salas.router)
 app.include_router(documentos.router)
+app.include_router(chat.router)
 
 
 @app.get("/salud")
 def salud():
-    return {"estado": "ok", "llm": settings.llm_proveedor}
+    return {"estado": "ok", "llm_disponibles": obtener_llm().disponibles()}

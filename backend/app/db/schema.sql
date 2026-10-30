@@ -42,6 +42,7 @@ CREATE TABLE mensajes (
     rol       TEXT NOT NULL,            -- usuario | asistente
     contenido TEXT NOT NULL,
     fuentes   JSONB,                    -- citas usadas en la respuesta: [{documento_id, pagina}]
+    modelo    TEXT,                     -- qué modelo generó la respuesta (solo asistente)
     creado_en TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
